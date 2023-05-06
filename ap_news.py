@@ -135,7 +135,7 @@ class APNews:
             ]
 
             cut_off_date = datetime.strptime(
-                "2023-04-01T00:00:00Z", "%Y-%m-%dT%H:%M:%SZ"
+                "2023-03-01T00:00:00Z", "%Y-%m-%dT%H:%M:%SZ"
             )
             """ self.__get_most_recent_timestamp(
                 self.url
@@ -146,7 +146,7 @@ class APNews:
                 each_article[0]  # index-1 contains url for respective dates
                 for each_article in urls_with_dates
                 if parse(each_article[1])
-                > parse(cut_off_date.strftime("%Y-%m-%d %H:%M:%S"))
+                >= parse(cut_off_date.strftime("%Y-%m-%d %H:%M:%S"))
             ]
             self.__log_to_discord(to_be_scraped_urls,color=65280)
             return list(set(to_be_scraped_urls))
