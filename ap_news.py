@@ -147,7 +147,7 @@ class APNews:
                 if parse(each_article[1])
                 >= parse(cut_off_date.strftime("%Y-%m-%d %H:%M:%S"))
             ]
-            #self.__log_to_discord(to_be_scraped_urls,color=65280)
+            self.__log_to_discord([ ''.join([self.DOMAIN ,url]) for url in to_be_scraped_urls],color=65280)
             return list(set(to_be_scraped_urls))
 
         else:
@@ -248,13 +248,22 @@ class APNews:
                 return None
 
     def __create_payload(self, message, color=16711680):
-        
-            return {
-                "content": "",
-                "embeds": [
-                    {"title": "ap-news scraper", "description": message, "color": color}
-                ],
-            }
+            if isinstance(message, list):
+                message = 'following urls are scraped for updation:\n'+ '\n\n'.join(message)
+                return {
+                    "content": "",
+                    "embeds": [
+                        {"title": "[ap-news scraper]",
+                            "description": message, "color": color}
+                    ],
+                }
+            else:
+                return {
+                    "content": "",
+                    "embeds": [
+                        {"title": "[ap-news scraper]", "description": message, "color": color}
+                    ],
+                }
 
     def scrape(self):
         self.__log_to_discord("initiating ap-news scraper", color=65280)
