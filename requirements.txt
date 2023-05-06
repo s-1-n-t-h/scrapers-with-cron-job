@@ -3,6 +3,5 @@ requests
 pandas
 bs4
 datetime
-dateutil
 logging
 json
