@@ -134,7 +134,7 @@ class APNews:
                 for each_div in divs
             ]
 
-            cut_off_date = datetime.strptime('2023-01-17T00:00:00Z', "%Y-%m-%dT%H:%M:%SZ")
+            cut_off_date = datetime.strptime('2023-05-06T00:00:00Z', "%Y-%m-%dT%H:%M:%SZ")
 
             """ self.__get_most_recent_timestamp(
                 self.url
