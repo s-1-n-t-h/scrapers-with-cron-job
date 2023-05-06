@@ -309,6 +309,7 @@ class APNews:
             self.__log_to_discord(
                 "Neither of sites have updated/ new content", color=16753920
             )  # orange
+        self.__log_to_discord(f'finished scraping ap-news!!',color=65280)
 
 
 obj = APNews()  # working
