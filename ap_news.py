@@ -135,7 +135,7 @@ class APNews:
             ]
 
             cut_off_date = datetime.strptime(
-                datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"), "%Y-%m-%dT%H:%M:%SZ"
+                "2023-04-01T00:00:00Z", "%Y-%m-%dT%H:%M:%SZ"
             )
             """ self.__get_most_recent_timestamp(
                 self.url
@@ -249,12 +249,20 @@ class APNews:
                 return None
 
     def __create_payload(self, message, color=16711680):
-        return {
-            "content": "",
-            "embeds": [
-                {"title": "ap-news scraper", "description": message, "color": color}
-            ],
-        }
+        if isinstance(message,list):
+            return {
+                "content": "",
+                "embeds": [
+                    {"title": "[ap-news scraper]", "description": message, "color": color}
+                ],
+            }
+        else:
+            return {
+                "content": "",
+                "embeds": [
+                    {"title": "ap-news scraper", "description": message, "color": color}
+                ],
+            }
 
     def scrape(self):
         self.__log_to_discord("initiating ap-news scraper", color=65280)
