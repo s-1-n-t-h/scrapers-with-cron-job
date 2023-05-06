@@ -136,8 +136,8 @@ class APNews:
                 for each_div in divs
             ]
 
-            start_date = datetime(2022, 1, 1, tzinfo=timezone.utc)
-            end_date = datetime(2023, 5, 6, tzinfo=timezone.utc)
+            start_date = datetime(2023, 1, 1, tzinfo=timezone.utc)
+            end_date = datetime(2023, 5, 1, tzinfo=timezone.utc)
 
             random_dt = self.__random_date(start_date, end_date)
             random_dt_str = random_dt.strftime("%Y-%m-%dT%H:%M:%SZ")
