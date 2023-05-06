@@ -1,4 +1,3 @@
-os
 psycopg2
 requests
 pandas
