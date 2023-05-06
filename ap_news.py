@@ -134,9 +134,8 @@ class APNews:
                 for each_div in divs
             ]
 
-            cut_off_date = datetime.strptime(
-                "2023-03-01T00:00:00Z", "%Y-%m-%dT%H:%M:%SZ"
-            )
+            cut_off_date = datetime.strptime('2023-03-17T00:00:00Z', "%Y-%m-%dT%H:%M:%SZ")
+
             """ self.__get_most_recent_timestamp(
                 self.url
             )"""  # datetime.strptime('2023-03-17T00:00:00Z',"%Y-%m-%dT%H:%M:%SZ") #tested
@@ -148,7 +147,7 @@ class APNews:
                 if parse(each_article[1])
                 >= parse(cut_off_date.strftime("%Y-%m-%d %H:%M:%S"))
             ]
-            self.__log_to_discord(to_be_scraped_urls,color=65280)
+            #self.__log_to_discord(to_be_scraped_urls,color=65280)
             return list(set(to_be_scraped_urls))
 
         else:
@@ -249,14 +248,7 @@ class APNews:
                 return None
 
     def __create_payload(self, message, color=16711680):
-        if isinstance(message,list):
-            return {
-                "content": "",
-                "embeds": [
-                    {"title": "[ap-news scraper]", "description": message, "color": color}
-                ],
-            }
-        else:
+        
             return {
                 "content": "",
                 "embeds": [
