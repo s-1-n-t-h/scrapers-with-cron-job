@@ -147,7 +147,7 @@ class APNews:
                 if parse(each_article[1])
                 >= parse(cut_off_date.strftime("%Y-%m-%d %H:%M:%S"))
             ]
-            self.__log_to_discord([ ''.join([self.DOMAIN ,url]) for url in to_be_scraped_urls],color=65280)
+            self.__log_to_discord([ ''.join([self.DOMAIN ,url]) for url in to_be_scraped_urls],color=16776960)
             return list(set(to_be_scraped_urls))
 
         else:
