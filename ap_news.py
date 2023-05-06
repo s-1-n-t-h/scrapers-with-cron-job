@@ -3,11 +3,12 @@ import psycopg2
 import requests
 import pandas as pd
 from bs4 import BeautifulSoup
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 import time
 from dateutil.parser import parse
 import logging
 import json
+import random
 
 # Set the path to the logs directory
 logs_dir = os.path.join(os.getcwd(), "src/logs")
@@ -18,7 +19,8 @@ if not os.path.exists(logs_dir):
 
 logging.basicConfig(
     level=logging.DEBUG,
-    format="%(asctime)s,%(msecs)03d: %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s",
+    format='''%(asctime)s,%(msecs)03d: %(levelname)-8s
+            [%(filename)s:%(lineno)d] %(message)s''',
     datefmt="%Y-%m-%d:%H:%M:%S",
     handlers=[
         logging.FileHandler(os.path.join(logs_dir, "ap_news_scraper.log")),
@@ -134,20 +136,32 @@ class APNews:
                 for each_div in divs
             ]
 
-            cut_off_date = datetime.strptime('2023-05-06T00:00:00Z', "%Y-%m-%dT%H:%M:%SZ")
+            start_date = datetime(2022, 1, 1, tzinfo=timezone.utc)
+            end_date = datetime(2023, 5, 6, tzinfo=timezone.utc)
+
+            random_dt = self.__random_date(start_date, end_date)
+            random_dt_str = random_dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+            cut_off_date = datetime.strptime(random_dt_str, "%Y-%m-%dT%H:%M:%SZ")
 
             """ self.__get_most_recent_timestamp(
                 self.url
             )"""  # datetime.strptime('2023-03-17T00:00:00Z',"%Y-%m-%dT%H:%M:%SZ") #tested
             # generate a list of urls that needs re scraping as per date
-            self.__log_to_discord(f'last indexed date at DB: {cut_off_date} for {self.url}',color=65280)
+            self.__log_to_discord(
+                f"last indexed date at DB: {cut_off_date} for {self.url}", color=65280
+            )
             to_be_scraped_urls = [
                 each_article[0]  # index-1 contains url for respective dates
                 for each_article in urls_with_dates
                 if parse(each_article[1])
                 >= parse(cut_off_date.strftime("%Y-%m-%d %H:%M:%S"))
             ]
-            self.__log_to_discord([ ''.join([self.DOMAIN ,url]) for url in to_be_scraped_urls],color=16776960)
+            if len(to_be_scraped_urls) > 0:
+                self.__log_to_discord(
+                    ["".join([self.DOMAIN, url]) for url in to_be_scraped_urls],
+                    color=16776960,
+                )
             return list(set(to_be_scraped_urls))
 
         else:
@@ -248,22 +262,37 @@ class APNews:
                 return None
 
     def __create_payload(self, message, color=16711680):
-            if isinstance(message, list):
-                message = 'following urls are scraped for updation:\n'+ '\n\n'.join(message)
-                return {
-                    "content": "",
-                    "embeds": [
-                        {"title": "[ap-news scraper]",
-                            "description": message, "color": color}
-                    ],
-                }
-            else:
-                return {
-                    "content": "",
-                    "embeds": [
-                        {"title": "[ap-news scraper]", "description": message, "color": color}
-                    ],
-                }
+        if isinstance(message, list):
+            message = "following urls are scraped for updation:\n" + "\n\n".join(
+                message
+            )
+            return {
+                "content": "",
+                "embeds": [
+                    {
+                        "title": "[ap-news scraper]",
+                        "description": message,
+                        "color": color,
+                    }
+                ],
+            }
+        else:
+            return {
+                "content": "",
+                "embeds": [
+                    {
+                        "title": "[ap-news scraper]",
+                        "description": message,
+                        "color": color,
+                    }
+                ],
+            }
+
+    def __random_date(start, end):
+        delta = end - start
+        int_delta = (delta.days * 24 * 60 * 60) + delta.seconds
+        random_second = random.randrange(int_delta)
+        return start + timedelta(seconds=random_second)
 
     def scrape(self):
         self.__log_to_discord("initiating ap-news scraper", color=65280)
@@ -294,7 +323,7 @@ class APNews:
         else:
             # self.logger.info(f'No updates found at Apnews Cryptocurrency')
             self.__log_to_discord(
-                f"No updates found at Apnews Cryptocurrency", color=16753920
+                "No updates found at Apnews Cryptocurrency", color=16753920
             )  # orange
 
         if df2 is not None:
@@ -302,7 +331,7 @@ class APNews:
         else:
             # self.logger.info(f'No updates found at Apnews Blockchain')
             self.__log_to_discord(
-                f"No updates found at Apnews Blockchain", color=16753920
+                "No updates found at Apnews Blockchain", color=16753920
             )
 
         if len(dfs_to_concat) > 0:
@@ -318,7 +347,7 @@ class APNews:
             self.__log_to_discord(
                 "Neither of sites have updated/ new content", color=16753920
             )  # orange
-        self.__log_to_discord(f'finished scraping ap-news!!',color=65280)
+        self.__log_to_discord("finished scraping ap-news!!", color=65280)
 
 
 obj = APNews()  # working
