@@ -135,13 +135,13 @@ class APNews:
             ]
 
             cut_off_date = datetime.strptime(
-                "2023-04-27T00:00:00Z", "%Y-%m-%dT%H:%M:%SZ"
+                datetime.now(), "%Y-%m-%dT%H:%M:%SZ"
             )
             """ self.__get_most_recent_timestamp(
                 self.url
             )"""  # datetime.strptime('2023-03-17T00:00:00Z',"%Y-%m-%dT%H:%M:%SZ") #tested
             # generate a list of urls that needs re scraping as per date
-            self.__log_to_discord(f'last indexed date at DB: {cut_off_date}',color=65280)
+            self.__log_to_discord(f'last indexed date at DB: {cut_off_date} for {self.url}',color=65280)
             to_be_scraped_urls = [
                 each_article[0]  # index-1 contains url for respective dates
                 for each_article in urls_with_dates
