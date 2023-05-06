@@ -19,4 +19,6 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Run script
+        env:
+          WEBHOOK_URL = ${{ secrets.DISCORD_WEBHOOK_URL}}
         run: python ap_news.py

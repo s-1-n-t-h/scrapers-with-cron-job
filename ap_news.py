@@ -95,7 +95,7 @@ class APNews:
         urllib3_logger = logging.getLogger("urllib3.connectionpool")
         urllib3_logger.setLevel(logging.WARNING)
         # setting variables to log at a discord channel
-        self.webhook_url = "https://discord.com/api/webhooks/1103565837954199583/zSibDE8CuB4gNp9JbPubDRYpmKZPW0cnQJlr1e-wCvNmXOFoyki6Fdik1L9PdUY3sAES"
+        self.webhook_url = os.getenv('WEBHOOK_URL')
 
     # mines all urls from ap news main page
     def __scrape_news_urls(self, source):
