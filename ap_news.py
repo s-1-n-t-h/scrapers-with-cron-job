@@ -135,7 +135,7 @@ class APNews:
             ]
 
             cut_off_date = datetime.strptime(
-                datetime.now(), "%Y-%m-%dT%H:%M:%SZ"
+                datetime.now().strftime(), "%Y-%m-%dT%H:%M:%SZ"
             )
             """ self.__get_most_recent_timestamp(
                 self.url
