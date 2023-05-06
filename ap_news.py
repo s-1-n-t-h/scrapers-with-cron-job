@@ -135,7 +135,7 @@ class APNews:
             ]
 
             cut_off_date = datetime.strptime(
-                "2022-01-17T00:00:00Z", "%Y-%m-%dT%H:%M:%SZ"
+                "2023-04-27T00:00:00Z", "%Y-%m-%dT%H:%M:%SZ"
             )
             """ self.__get_most_recent_timestamp(
                 self.url
