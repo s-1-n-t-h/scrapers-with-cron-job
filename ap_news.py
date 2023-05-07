@@ -19,8 +19,8 @@ if not os.path.exists(logs_dir):
 
 logging.basicConfig(
     level=logging.DEBUG,
-    format='''%(asctime)s,%(msecs)03d: %(levelname)-8s
-            [%(filename)s:%(lineno)d] %(message)s''',
+    format="""%(asctime)s,%(msecs)03d: %(levelname)-8s
+            [%(filename)s:%(lineno)d] %(message)s""",
     datefmt="%Y-%m-%d:%H:%M:%S",
     handlers=[
         logging.FileHandler(os.path.join(logs_dir, "ap_news_scraper.log")),
@@ -95,7 +95,7 @@ class APNews:
         urllib3_logger = logging.getLogger("urllib3.connectionpool")
         urllib3_logger.setLevel(logging.WARNING)
         # setting variables to log at a discord channel
-        self.webhook_url = os.getenv('WEBHOOK_URL')
+        self.webhook_url = os.getenv("WEBHOOK_URL")
 
     # mines all urls from ap news main page
     def __scrape_news_urls(self, source):
@@ -149,7 +149,8 @@ class APNews:
             )"""  # datetime.strptime('2023-03-17T00:00:00Z',"%Y-%m-%dT%H:%M:%SZ") #tested
             # generate a list of urls that needs re scraping as per date
             self.__log_to_discord(
-                f"last indexed date at DB: {cut_off_date} for [{self.url}]", color=16776960
+                f"last indexed date at DB: {cut_off_date} for [{self.url}]",
+                color=16776960,
             )
             to_be_scraped_urls = [
                 each_article[0]  # index-1 contains url for respective dates
@@ -288,7 +289,7 @@ class APNews:
                 ],
             }
 
-    def __random_date(self,start, end):
+    def __random_date(self, start, end):
         delta = end - start
         int_delta = (delta.days * 24 * 60 * 60) + delta.seconds
         random_second = random.randrange(int_delta)
