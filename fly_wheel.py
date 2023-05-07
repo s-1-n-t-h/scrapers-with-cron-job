@@ -9,8 +9,8 @@ import time
 from dateutil.parser import parse
 import random
 import sys
-sys.path.append(r'src/discordLogger')
-from discordLogger.discord import Discord
+
+sys.path.append(r"src/discordLogger")
 
 try:
     from dotenv import load_dotenv
@@ -67,30 +67,30 @@ class FlyWheel:
     def __init__(self):
         self.url = "https://flywheeloutput.com/"
         self.sitemap_url = "https://flywheeloutput.com/sitemap.xml"
-        self.webhook_url = 'https://discord.com/api/webhooks/1104471942838353981/uei7Hm3XT6h3vGjLepVw2RXtC6iLh6PKFThXTEm-azvCUny17PUK5aeMMeQQjdon0l2H'
-        #self.discord = Discord()
-        #self.discord.log_to_discord('initiating flywheel scraper', color=65280)
-    
+        self.webhook_url = os.getenv("WEBHOOK_URL")
+        # self.discord = Discord()
+        # self.discord.log_to_discord('initiating flywheel scraper', color=65280)
 
-    '''probably this part of code is not nucessaer, since we know sitemap url, if it's chaging in dynamic sense
+    """probably this part of code is not nucessaer, since we know sitemap url, if it's chaging in dynamic sense
         may be then for finding where will he helpful
-    '''
+    """
+
     def __sitemap_exists(self, base_url):
-        with open(''.join([os.path.dirname(__file__) , "/sitemaps.json"]), "r") as file:
+        with open("".join([os.path.dirname(__file__), "/sitemaps.json"]), "r") as file:
             sitemap_url_list = json.load(file)["sitemap_types"]
 
         for url in sitemap_url_list:
-            new_url = ''.join([base_url + url])
+            new_url = "".join([base_url + url])
             response = requests.get(new_url)
             if response.status_code == 200:
                 return (base_url.rstrip("/"), url, base_url.rstrip("/") + url)
         else:
-            self.__log_to_discord(f'Sitemap does not exist for [{base_url}]')
+            self.__log_to_discord(f"Sitemap does not exist for [{base_url}]")
             return None
 
     def __scrape_content(self, urls, source):
         # recives a list of urls and tries to scrape
-        if len(urls) != 0:  
+        if len(urls) != 0:
             data_frame = pd.DataFrame(columns=["source", "url", "title", "content"])
             for current_url in urls:
                 html = self.__send_request(current_url)
@@ -128,7 +128,7 @@ class FlyWheel:
 
             return data_frame
         else:
-            self.__log_to_discord(f'Scraper recieved 0 urls to scrape from {source}')
+            self.__log_to_discord(f"Scraper recieved 0 urls to scrape from {source}")
             return None
 
     def __scrape_updated_urls(self, sitemap_url):
@@ -157,9 +157,9 @@ class FlyWheel:
                 if url_set_item.find("lastmod") is not None
             ]
 
-            #most_recent_timestamp = self.__get_most_recent_timestamp()
-            #cut_off_date = most_recent_timestamp.date()
-            #cut_off_date = cut_off_date.strftime("%Y-%m-%d")
+            # most_recent_timestamp = self.__get_most_recent_timestamp()
+            # cut_off_date = most_recent_timestamp.date()
+            # cut_off_date = cut_off_date.strftime("%Y-%m-%d")
 
             start_date = datetime(2023, 4, 1, tzinfo=timezone.utc)
             end_date = datetime(2023, 5, 1, tzinfo=timezone.utc)
@@ -169,20 +169,21 @@ class FlyWheel:
 
             cut_off_date = random_dt_str
             self.__log_to_discord(
-                f"last indexed date at DB: {cut_off_date} for [{self.url}]", color=16776960
+                f"last indexed date at DB: {cut_off_date} for [{self.url}]",
+                color=16776960,
             )
             to_be_scraped_urls = [
                 each_article[1]
                 for each_article in url_dates
                 if parse(each_article[0]) > parse(random_dt_str)
             ]
-            self.__log_to_discord(to_be_scraped_urls,color=16776960)
+            self.__log_to_discord(to_be_scraped_urls, color=16776960)
             return list(set(to_be_scraped_urls))
         else:
-            self.__log_to_discord(f'No URLs found at sitemap {sitemap_url}')
+            self.__log_to_discord(f"No URLs found at sitemap {sitemap_url}")
             return None
 
-    def __random_date(self,start, end):
+    def __random_date(self, start, end):
         delta = end - start
         int_delta = (delta.days * 24 * 60 * 60) + delta.seconds
         random_second = random.randrange(int_delta)
@@ -223,10 +224,9 @@ class FlyWheel:
 
             return to_be_scraped_urls
         else:
-            self.__log_to_discord(f'No URLs found to scrape from {sitemap_url}')
+            self.__log_to_discord(f"No URLs found to scrape from {sitemap_url}")
             return None
 
-    
     def __send_request(self, url, retries=3):
         try:
             response = requests.get(url)
@@ -274,7 +274,9 @@ class FlyWheel:
 
     def __create_payload(self, message, color=16711680):
         if isinstance(message, list):
-            message = "following urls are scraped for updation:\n" + "\n\n".join(message)
+            message = "following urls are scraped for updation:\n" + "\n\n".join(
+                message
+            )
             return {
                 "content": "",
                 "embeds": [
@@ -297,7 +299,6 @@ class FlyWheel:
                 ],
             }
 
-
     def scrape_fly_wheel(self):
         try:
             self.__log_to_discord("initiating flywheel scraper", color=65280)
@@ -305,9 +306,10 @@ class FlyWheel:
             if possibility is not None:
                 urls = self.__scrape_updated_urls(possibility[2])
                 if urls is not None:
-                    data_frame = self.__scrape_content(urls, source='Flyhweel')
+                    data_frame = self.__scrape_content(urls, source="Flyhweel")
                     self.__log_to_discord(
-                        f"scraping successful... {data_frame.shape[0]} urls are updated!", color=65280
+                        f"scraping successful... {data_frame.shape[0]} urls are updated!",
+                        color=65280,
                     )
                     if data_frame is not None:
                         return data_frame
@@ -320,6 +322,6 @@ class FlyWheel:
         finally:
             self.__log_to_discord("finished scraping Flywheel!!", color=65280)
 
-    
+
 obj = FlyWheel()
 print(obj.scrape_fly_wheel())
