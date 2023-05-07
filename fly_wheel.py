@@ -281,7 +281,7 @@ class FlyWheel:
                 "content": "",
                 "embeds": [
                     {
-                        "title": "[ap-news scraper]",
+                        "title": "[Flywheel scraper]",
                         "description": message,
                         "color": color,
                     }
@@ -292,7 +292,7 @@ class FlyWheel:
                 "content": "",
                 "embeds": [
                     {
-                        "title": "[ap-news scraper]",
+                        "title": "[Flywheel scraper]",
                         "description": message,
                         "color": color,
                     }
