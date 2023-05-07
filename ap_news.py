@@ -149,7 +149,7 @@ class APNews:
             )"""  # datetime.strptime('2023-03-17T00:00:00Z',"%Y-%m-%dT%H:%M:%SZ") #tested
             # generate a list of urls that needs re scraping as per date
             self.__log_to_discord(
-                f"last indexed date at DB: {cut_off_date} for {self.url}", color=65280
+                f"last indexed date at DB: {cut_off_date} for [{self.url}]", color=16776960
             )
             to_be_scraped_urls = [
                 each_article[0]  # index-1 contains url for respective dates
