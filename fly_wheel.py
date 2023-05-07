@@ -8,9 +8,6 @@ from datetime import datetime, date, timezone, timedelta
 import time
 from dateutil.parser import parse
 import random
-import sys
-
-sys.path.append(r"src/discordLogger")
 
 try:
     from dotenv import load_dotenv

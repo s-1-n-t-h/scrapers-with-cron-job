@@ -9,23 +9,6 @@ import json
 import random
 import logging
 
-# Set the path to the logs directory
-logs_dir = os.path.join(os.getcwd(), "src/logs")
-
-# Create the logs directory if it doesn't already exist
-if not os.path.exists(logs_dir):
-    os.makedirs(logs_dir)
-
-logging.basicConfig(
-    level=logging.DEBUG,
-    format="""%(asctime)s,%(msecs)03d: %(levelname)-8s
-            [%(filename)s:%(lineno)d] %(message)s""",
-    datefmt="%Y-%m-%d:%H:%M:%S",
-    handlers=[
-        logging.FileHandler(os.path.join(logs_dir, "ap_news_scraper.log")),
-        logging.StreamHandler(),
-    ],
-)
 
 try:
     from dotenv import load_dotenv
@@ -101,7 +84,7 @@ class IQWiki:
         urllib3_logger.setLevel(logging.WARNING)
         # setting variables to log at a discord channel
 
-        self.webhook_url = os.getenv("WEBHOOK_URL")
+        self.webhook_url = "https://discord.com/api/webhooks/1104471942838353981/uei7Hm3XT6h3vGjLepVw2RXtC6iLh6PKFThXTEm-azvCUny17PUK5aeMMeQQjdon0l2H"
 
     def __scrape_new_urls(self, cut_off_date):
         response = requests.post(url=self.url, json={"query": self.query_new_wikis})
