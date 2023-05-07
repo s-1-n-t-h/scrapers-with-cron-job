@@ -307,11 +307,11 @@ class FlyWheel:
                 urls = self.__scrape_updated_urls(possibility[2])
                 if urls is not None:
                     data_frame = self.__scrape_content(urls, source="Flyhweel")
-                    self.__log_to_discord(
-                        f"scraping successful... {data_frame.shape[0]} urls are updated!",
-                        color=65280,
-                    )
                     if data_frame is not None:
+                        self.__log_to_discord(
+                            f"scraping successful... {data_frame.shape[0]} urls are updated!",
+                            color=65280,
+                        )
                         return data_frame
                     else:
                         return None
