@@ -1,0 +1,17 @@
+{
+  "sitemap_types": [
+    "/sitemap.xml",
+    "/sitemap-index.xml",
+    "/sitemap.php",
+    "/sitemap.txt",
+    "/sitemap.xml.gz",
+    "/sitemap/",
+    "/sitemap/sitemap.xml",
+    "/sitemapindex.xml",
+    "/sitemap/index.xml",
+    "/sitemap1.xml",
+    "/rss/",
+    "/rss.xml",
+    "/atom.xml"
+  ]
+}
