@@ -33,5 +33,5 @@ jobs:
         run: python fly_wheel.py
       - name: Run IQ Wiki Scraper
         env:
-          WEBHOOK_URL: ${{ secrets.DISCORD_WEBOOK_URL}}
+          WEBHOOK_URL: ${{ secrets.DISCORD_WEHBOOK_URL}}
         run: python iq_wikis.py

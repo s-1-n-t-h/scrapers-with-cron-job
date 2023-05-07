@@ -84,7 +84,7 @@ class IQWiki:
         urllib3_logger.setLevel(logging.WARNING)
         # setting variables to log at a discord channel
 
-        self.webhook_url = "https://discord.com/api/webhooks/1104471942838353981/uei7Hm3XT6h3vGjLepVw2RXtC6iLh6PKFThXTEm-azvCUny17PUK5aeMMeQQjdon0l2H"
+        self.webhook_url = os.getenv("WEBHOOK_URL")
 
     def __scrape_new_urls(self, cut_off_date):
         response = requests.post(url=self.url, json={"query": self.query_new_wikis})
