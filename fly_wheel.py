@@ -65,7 +65,7 @@ class FlyWheel:
         self.url = "https://flywheeloutput.com/"
         self.sitemap_url = "https://flywheeloutput.com/sitemap.xml"
         # os.getenv("WEBHOOK_URL")
-        self.webhook_url = "https://discord.com/api/webhooks/1104471942838353981/uei7Hm3XT6h3vGjLepVw2RXtC6iLh6PKFThXTEm-azvCUny17PUK5aeMMeQQjdon0l2H"
+        self.webhook_url = os.getenv("WEBHOOK_URL")
         # self.discord = Discord()
         # self.discord.log_to_discord('initiating flywheel scraper', color=65280)
 
