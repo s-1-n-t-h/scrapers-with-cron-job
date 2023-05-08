@@ -65,7 +65,7 @@ class FlyWheel:
         self.url = "https://flywheeloutput.com/"
         self.sitemap_url = "https://flywheeloutput.com/sitemap.xml"
         # os.getenv("WEBHOOK_URL")
-        self.webhook_url = os.getenv("WEBHOOK_URL")
+        self.webhook_url = os.getenv("WEBHOOK_URL")#"https://discord.com/api/webhooks/1104471942838353981/uei7Hm3XT6h3vGjLepVw2RXtC6iLh6PKFThXTEm-azvCUny17PUK5aeMMeQQjdon0l2H"  # os.getenv("WEBHOOK_URL")
         # self.discord = Discord()
         # self.discord.log_to_discord('initiating flywheel scraper', color=65280)
 
@@ -73,7 +73,7 @@ class FlyWheel:
         may be then for finding where will he helpful
     """
 
-    def __scrape_content(self, urls, source='Flywheel'):
+    def __scrape_content(self, urls, source="Flywheel"):
         # recives a list of urls and tries to scrape
         if len(urls) != 0:
             data_frame = pd.DataFrame(columns=["source", "url", "title", "content"])
@@ -305,16 +305,18 @@ class FlyWheel:
         try:
             self.__log_to_discord("initiating flywheel scraper", color=65280)
             updated_urls = self.__scrape_updated_urls(self.sitemap_url)
-            df = self.__scrape_content(updated_urls)
-            if df is not None:
-                self.__log_to_discord(
-                    f"scraping successful... {df.shape[0]} urls are updated!",
-                    color=65280,
-                )
-                return df
-            else:
-                self.__log_to_discord(
-                    "No updates found at Flywheel", color=16753920)
+            if updated_urls is not None:
+                df = self.__scrape_content(updated_urls)
+                if df is not None:
+                    self.__log_to_discord(
+                        f"scraping successful... {df.shape[0]} urls are updated!",
+                        color=65280,
+                    )
+                    return df
+                else:
+                    self.__log_to_discord(
+                        "No updates found at Flywheel", color=16753920
+                    )
         finally:
             self.__log_to_discord("finished scraping Flywheel!!", color=65280)
 
