@@ -72,15 +72,25 @@ class FlyWheel:
         may be then for finding where will he helpful
     """
 
-    def __sitemap_exists(self, base_url):
+    def __sitemap_exists(self, base_url,retries=3):
         with open("".join([os.path.dirname(__file__), "/sitemaps.json"]), "r") as file:
             sitemap_url_list = json.load(file)["sitemap_types"]
 
         for url in sitemap_url_list:
             new_url = "".join([base_url + url])
-            response = requests.get(new_url)
-            if response.status_code == 200:
+            try:
+                response = requests.get(new_url)
+                response.raise_for_status()
                 return (base_url.rstrip("/"), url, base_url.rstrip("/") + url)
+            except requests.exceptions.RequestException as exception:
+                if retries > 0:
+                    time.sleep(5)
+                    self.__sitemap_exists(base_url,retries-1)
+                else:
+                    self.__log_to_discord(
+                        f"problem with scraping [{url}]: {exception} After 3 retries, No retries left. Check URL passed!"
+                    )
+                    return None
         else:
             self.__log_to_discord(f"Sitemap does not exist for [{base_url}]")
             return None
@@ -128,10 +138,11 @@ class FlyWheel:
             self.__log_to_discord(f"Scraper recieved 0 urls to scrape from {source}")
             return None
 
-    def __scrape_updated_urls(self, sitemap_url):
+    def __scrape_updated_urls(self, sitemap_url,retries=3):
         # let it be since here we are parsing xml page
-        response = requests.get(sitemap_url)
-        if response.status_code == 200:
+        try:
+            response = requests.get(sitemap_url)
+            response.raise_for_status()
             data = BeautifulSoup(response.text, "xml")
 
             url_set = data.find_all("url")
@@ -176,9 +187,18 @@ class FlyWheel:
             ]
             self.__log_to_discord(to_be_scraped_urls, color=16776960)
             return list(set(to_be_scraped_urls))
-        else:
-            self.__log_to_discord(f"No URLs found at sitemap {sitemap_url}")
-            return None
+
+        except requests.exceptions.RequestException as exception:
+            if retries > 0:
+                time.sleep(5)
+                self.__sitemap_exists(sitemap_url, retries-1)
+            else:
+                self.__log_to_discord(
+                    f"No URLs found at sitemap {sitemap_url}")
+                self.__log_to_discord(
+                    f"problem with scraping [{sitemap_url}]: {exception} After 3 retries, No retries left. Check URL passed!"
+                )
+                return None
 
     def __random_date(self, start, end):
         delta = end - start
@@ -186,9 +206,10 @@ class FlyWheel:
         random_second = random.randrange(int_delta)
         return start + timedelta(seconds=random_second)
 
-    def __scrape_all_urls(self, sitemap_url):
-        response = requests.get(sitemap_url)
-        if response.status_code == 200:
+    def __scrape_all_urls(self, sitemap_url,retries=3):
+        try:
+            response = requests.get(sitemap_url)
+            response.raise_for_status()
             data = BeautifulSoup(response.text, "xml")
 
             url_set = data.find_all("url")
@@ -220,9 +241,18 @@ class FlyWheel:
             ]
 
             return to_be_scraped_urls
-        else:
-            self.__log_to_discord(f"No URLs found to scrape from {sitemap_url}")
-            return None
+        except requests.exceptions.RequestException as exception:
+            if retries > 0:
+                time.sleep(5)
+                self.__sitemap_exists(sitemap_url, retries-1)
+            else:
+                self.__log_to_discord(
+                    f"No URLs found at sitemap {sitemap_url}")
+                self.__log_to_discord(
+                    f"problem with scraping [{sitemap_url}]: {exception} After 3 retries, No retries left. Check URL passed!"
+                )
+                return None
+
 
     def __send_request(self, url, retries=3):
         try:
