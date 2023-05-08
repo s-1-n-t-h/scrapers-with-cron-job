@@ -64,36 +64,14 @@ class FlyWheel:
     def __init__(self):
         self.url = "https://flywheeloutput.com/"
         self.sitemap_url = "https://flywheeloutput.com/sitemap.xml"
-        self.webhook_url = os.getenv("WEBHOOK_URL")
+        # os.getenv("WEBHOOK_URL")
+        self.webhook_url = "https://discord.com/api/webhooks/1104471942838353981/uei7Hm3XT6h3vGjLepVw2RXtC6iLh6PKFThXTEm-azvCUny17PUK5aeMMeQQjdon0l2H"
         # self.discord = Discord()
         # self.discord.log_to_discord('initiating flywheel scraper', color=65280)
 
     """probably this part of code is not nucessaer, since we know sitemap url, if it's chaging in dynamic sense
         may be then for finding where will he helpful
     """
-
-    def __sitemap_exists(self, base_url,retries=3):
-        with open("".join([os.path.dirname(__file__), "/sitemaps.json"]), "r") as file:
-            sitemap_url_list = json.load(file)["sitemap_types"]
-
-        for url in sitemap_url_list:
-            new_url = "".join([base_url + url])
-            try:
-                response = requests.get(new_url)
-                response.raise_for_status()
-                return (base_url.rstrip("/"), url, base_url.rstrip("/") + url)
-            except requests.exceptions.RequestException as exception:
-                if retries > 0:
-                    time.sleep(5)
-                    self.__sitemap_exists(base_url,retries-1)
-                else:
-                    self.__log_to_discord(
-                        f"problem with scraping [{url}]: {exception} After 3 retries, No retries left. Check URL passed!"
-                    )
-                    return None
-        else:
-            self.__log_to_discord(f"Sitemap does not exist for [{base_url}]")
-            return None
 
     def __scrape_content(self, urls, source):
         # recives a list of urls and tries to scrape
@@ -138,12 +116,12 @@ class FlyWheel:
             self.__log_to_discord(f"Scraper recieved 0 urls to scrape from {source}")
             return None
 
-    def __scrape_updated_urls(self, sitemap_url,retries=3):
+    def __scrape_updated_urls(self, sitemap_url, retries=3):
         # let it be since here we are parsing xml page
         try:
             response = requests.get(sitemap_url)
             response.raise_for_status()
-            data = BeautifulSoup(response.text, "xml")
+            data = self.__send_request(sitemap_url, parser="xml")
 
             url_set = data.find_all("url")
 
@@ -191,10 +169,9 @@ class FlyWheel:
         except requests.exceptions.RequestException as exception:
             if retries > 0:
                 time.sleep(5)
-                self.__sitemap_exists(sitemap_url, retries-1)
+                self.__send_request(sitemap_url, retries - 1)
             else:
-                self.__log_to_discord(
-                    f"No URLs found at sitemap {sitemap_url}")
+                self.__log_to_discord(f"No URLs found at sitemap {sitemap_url}")
                 self.__log_to_discord(
                     f"problem with scraping [{sitemap_url}]: {exception} After 3 retries, No retries left. Check URL passed!"
                 )
@@ -206,7 +183,7 @@ class FlyWheel:
         random_second = random.randrange(int_delta)
         return start + timedelta(seconds=random_second)
 
-    def __scrape_all_urls(self, sitemap_url,retries=3):
+    def __scrape_all_urls(self, sitemap_url, retries=3):
         try:
             response = requests.get(sitemap_url)
             response.raise_for_status()
@@ -244,21 +221,19 @@ class FlyWheel:
         except requests.exceptions.RequestException as exception:
             if retries > 0:
                 time.sleep(5)
-                self.__sitemap_exists(sitemap_url, retries-1)
+                self.__send_request(sitemap_url, retries - 1)
             else:
-                self.__log_to_discord(
-                    f"No URLs found at sitemap {sitemap_url}")
+                self.__log_to_discord(f"No URLs found at sitemap {sitemap_url}")
                 self.__log_to_discord(
                     f"problem with scraping [{sitemap_url}]: {exception} After 3 retries, No retries left. Check URL passed!"
                 )
                 return None
 
-
-    def __send_request(self, url, retries=3):
+    def __send_request(self, url, retries=3, parser="html.parser"):
         try:
             response = requests.get(url)
             response.raise_for_status()
-            return BeautifulSoup(response.text, "html.parser")
+            return BeautifulSoup(response.text, parser)
         except requests.exceptions.RequestException as exception:
             if retries > 0:
                 # logging.debug(f'Error: While scraping {url} {exception}. Retrying in 5 seconds...')
@@ -329,23 +304,15 @@ class FlyWheel:
     def scrape_fly_wheel(self):
         try:
             self.__log_to_discord("initiating flywheel scraper", color=65280)
-            possibility = self.__sitemap_exists(self.url)
-            if possibility is not None:
-                urls = self.__scrape_updated_urls(possibility[2])
-                if urls is not None:
-                    data_frame = self.__scrape_content(urls, source="Flyhweel")
-                    if data_frame is not None:
-                        self.__log_to_discord(
-                            f"scraping successful... {data_frame.shape[0]} urls are updated!",
-                            color=65280,
-                        )
-                        return data_frame
-                    else:
-                        return None
-                else:
-                    return None
+            df = self.__scrape_updated_urls(self.sitemap_url)
+            if df is not None:
+                self.__log_to_discord(
+                    f"scraping successful... {df.shape[0]} urls are updated!",
+                    color=65280,
+                )
+                return df
             else:
-                return None
+                self.__log_to_discord("No updates found at Flywheel")
         finally:
             self.__log_to_discord("finished scraping Flywheel!!", color=65280)
 
