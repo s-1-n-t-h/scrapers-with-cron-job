@@ -304,7 +304,8 @@ class FlyWheel:
     def scrape_fly_wheel(self):
         try:
             self.__log_to_discord("initiating flywheel scraper", color=65280)
-            df = self.__scrape_updated_urls(self.sitemap_url)
+            updated_urls = self.__scrape_updated_urls(self.sitemap_url)
+            df = self.__scrape_content(updated_urls)
             if df is not None:
                 self.__log_to_discord(
                     f"scraping successful... {df.shape[0]} urls are updated!",
