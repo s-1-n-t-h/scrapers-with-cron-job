@@ -312,7 +312,8 @@ class FlyWheel:
                 )
                 return df
             else:
-                self.__log_to_discord("No updates found at Flywheel")
+                self.__log_to_discord(
+                    "No updates found at Flywheel", color=16753920)
         finally:
             self.__log_to_discord("finished scraping Flywheel!!", color=65280)
 
