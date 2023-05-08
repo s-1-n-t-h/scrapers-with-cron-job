@@ -301,7 +301,7 @@ class FlyWheel:
                 ],
             }
 
-    def scrape_fly_wheel(self):
+    def scrape(self):
         try:
             self.__log_to_discord("initiating flywheel scraper", color=65280)
             updated_urls = self.__scrape_updated_urls(self.sitemap_url)
@@ -320,4 +320,4 @@ class FlyWheel:
 
 
 obj = FlyWheel()
-print(obj.scrape_fly_wheel())
+print(obj.scrape())
