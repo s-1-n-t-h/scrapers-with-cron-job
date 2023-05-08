@@ -73,7 +73,7 @@ class FlyWheel:
         may be then for finding where will he helpful
     """
 
-    def __scrape_content(self, urls, source):
+    def __scrape_content(self, urls, source='Flywheel'):
         # recives a list of urls and tries to scrape
         if len(urls) != 0:
             data_frame = pd.DataFrame(columns=["source", "url", "title", "content"])
