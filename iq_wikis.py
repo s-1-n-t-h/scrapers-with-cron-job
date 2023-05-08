@@ -91,7 +91,6 @@ class IQWiki:
 
         if response.status_code == 200:
             data = response.json()
-            print(data)
             activities = data["data"]["activities"]
 
             new_wikis = {}
