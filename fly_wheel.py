@@ -17,8 +17,8 @@ except ImportError:
 
 
 class FlyWheel:
-    __INTERNAL_ACTIVITY_WHOOK_URL = os.getenv("INTERNAL_ACTIVITY_WHOOK_URL")
-    __BRAIN_DAO_ALARMS_WHOOK_URL = os.getenv("BRAIN_DAO_ALARMS_WHOOK_URL")
+    #__INTERNAL_ACTIVITY_WHOOK_URL = os.getenv("INTERNAL_ACTIVITY_WHOOK_URL")
+    __BRAIN_DAO_ALARMS_WHOOK_URL = os.getenv("WEBHOOK_URL")
 
     def __init__(self):
         self.URL = "https://flywheeloutput.com/"
