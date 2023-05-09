@@ -1,10 +1,9 @@
 import os
-import psycopg2
 import requests
 import json
 import pandas as pd
 from bs4 import BeautifulSoup
-from datetime import datetime, date, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 import time
 from dateutil.parser import parse
 import random
@@ -18,86 +17,39 @@ except ImportError:
 
 
 class FlyWheel:
-    @staticmethod
-    def __get_most_recent_timestamp():
-        indexed_at = None
-        conn = None
-        try:
-            conn = psycopg2.connect(
-                host=os.getenv("DATABASE_HOST"),
-                database="verceldb",
-                user="default",
-                password=os.getenv("DATABASE_PASSWORD"),
-            )
-            cursor = conn.cursor()
-
-            query = 'SELECT "indexedAt" FROM "Source" WHERE url = \'https://flywheeloutput.com/sitemap.xml\';'
-            cursor.execute(query)
-            result = cursor.fetchone()
-
-            if result is not None:
-                indexed_at = result[0]
-                print(f"indexedAt value for Source Flywheel: {indexed_at}")
-
-                current_time = datetime.now()
-                update_query = 'UPDATE "Source" SET "indexedAt" = %s WHERE url = \'https://flywheeloutput.com/sitemap.xml\';'
-                cursor.execute(update_query, (current_time,))
-                conn.commit()
-
-                print(
-                    "indexedAt value for Source Flywheel has been updated to current date and time."
-                )
-            else:
-                print("No record found with the specified URL.")
-
-            return indexed_at
-
-        except psycopg2.Error as error:
-            print(f"Error: {error}")
-            return None
-
-        finally:
-            if conn:
-                cursor.close()
-                conn.close()
+    __INTERNAL_ACTIVITY_WHOOK_URL = os.getenv("INTERNAL_ACTIVITY_WHOOK_URL")
+    __BRAIN_DAO_ALARMS_WHOOK_URL = os.getenv("BRAIN_DAO_ALARMS_WHOOK_URL")
 
     def __init__(self):
-        self.url = "https://flywheeloutput.com/"
-        self.sitemap_url = "https://flywheeloutput.com/sitemap.xml"
-        # os.getenv("WEBHOOK_URL")
-        self.webhook_url = os.getenv("WEBHOOK_URL")#"https://discord.com/api/webhooks/1104471942838353981/uei7Hm3XT6h3vGjLepVw2RXtC6iLh6PKFThXTEm-azvCUny17PUK5aeMMeQQjdon0l2H"  # os.getenv("WEBHOOK_URL")
-        # self.discord = Discord()
-        # self.discord.log_to_discord('initiating flywheel scraper', color=65280)
+        self.URL = "https://flywheeloutput.com/"
+        self.SITEMAP_URL = "https://flywheeloutput.com/sitemap.xml"
 
-    """probably this part of code is not nucessaer, since we know sitemap url, if it's chaging in dynamic sense
+    """probably this part of code is not necessary since we know sitemap url, if it's chaging in dynamic sense
         may be then for finding where will he helpful
     """
 
     def __scrape_content(self, urls, source="Flywheel"):
-        # recives a list of urls and tries to scrape
-        if len(urls) != 0:
-            data_frame = pd.DataFrame(columns=["source", "url", "title", "content"])
-            for current_url in urls:
-                html = self.__send_request(current_url)
-                if html is None:
-                    self.__log_to_discord(f"Bad url {current_url} for making request")
-                    continue
+        data_frame = pd.DataFrame(columns=["source", "url", "title", "content"])
+        for current_url in urls:
+            html = self.__send_request(current_url)
+            if html is None:
+                self.__log_to_discord(
+                    f"⛔️ Bad URL for making request - {current_url} ⛔️"
+                )
+                continue
 
-                current_title = html.find("title")
-                current_content = html.find_all("p")
-                current_content = [
-                    para.text.rstrip("  No posts Ready for more?")
-                    for para in current_content
-                    if para.text is not None
-                ]
-                current_content = " ".join(current_content)
-                if len(current_content) == 0:
-                    """logging.debug(
-                        f"No content found at: {current_url}"
-                    )"""
-                    self.__log_to_discord(f"No content found at: {current_url}")
-                    # let's skip the urls that aren't having content and log them for future debugging
-                    continue
+            current_title = html.find("title")
+            current_content = html.find_all("p")
+            current_content = [
+                para.text.rstrip("  No posts Ready for more?")
+                for para in current_content
+                if para.text is not None
+            ]
+            current_content = " ".join(current_content)
+            if len(current_content) == 0:
+                self.__log_to_discord(f"⛔️ No content found at: {current_url}\n 😿")
+                continue
+            else:
                 new_data_frame = pd.DataFrame(
                     {
                         "source": [source],
@@ -111,19 +63,14 @@ class FlyWheel:
                     [data_frame, new_data_frame], axis=0, ignore_index=True
                 )
 
-            return data_frame
-        else:
-            self.__log_to_discord(f"Scraper recieved 0 urls to scrape from {source}")
-            return None
+        return data_frame
 
-    def __scrape_updated_urls(self, sitemap_url, retries=3):
+    def __scrape_updated_urls(self, cut_off_date):
         # let it be since here we are parsing xml page
-        try:
-            response = requests.get(sitemap_url)
-            response.raise_for_status()
-            data = self.__send_request(sitemap_url, parser="xml")
 
-            url_set = data.find_all("url")
+        xml = self.__send_request(self.SITEMAP_URL, parser="xml")
+        if xml is not None:
+            url_set = xml.find_all("url")
 
             """
             Ex: <url>
@@ -132,7 +79,7 @@ class FlyWheel:
                 <changefreq>monthly</changefreq>
             </url>
             """
-            url_dates = [
+            urls_with_dates = [
                 [
                     datetime.fromisoformat(
                         url_set_item.find("lastmod").string
@@ -146,51 +93,43 @@ class FlyWheel:
             # most_recent_timestamp = self.__get_most_recent_timestamp()
             # cut_off_date = most_recent_timestamp.date()
             # cut_off_date = cut_off_date.strftime("%Y-%m-%d")
-
+            """
             start_date = datetime(2023, 4, 1, tzinfo=timezone.utc)
             end_date = datetime(2023, 5, 1, tzinfo=timezone.utc)
 
             random_dt = self.__random_date(start_date, end_date)
             random_dt_str = random_dt.strftime("%Y-%m-%d")
-
-            cut_off_date = random_dt_str
+            """
             self.__log_to_discord(
-                f"last indexed date at DB: {cut_off_date} for [{self.url}]",
+                f"Scraped Flywheel last on: {cut_off_date} 🗓️",
                 color=16776960,
             )
+            cut_off_date = cut_off_date.date()
+            cut_off_date = cut_off_date.strftime("%Y-%m-%d")
             to_be_scraped_urls = [
                 each_article[1]
-                for each_article in url_dates
-                if parse(each_article[0]) > parse(random_dt_str)
+                for each_article in urls_with_dates
+                if parse(each_article[0]) > parse(cut_off_date)
             ]
-            self.__log_to_discord(to_be_scraped_urls, color=16776960)
-            return list(set(to_be_scraped_urls))
 
-        except requests.exceptions.RequestException as exception:
-            if retries > 0:
-                time.sleep(5)
-                self.__send_request(sitemap_url, retries - 1)
+            if to_be_scraped_urls is not None:
+                self.__log_to_discord(to_be_scraped_urls, color=16776960)  # yellow
+                return list(set(to_be_scraped_urls))
             else:
-                self.__log_to_discord(f"No URLs found at sitemap {sitemap_url}")
-                self.__log_to_discord(
-                    f"problem with scraping [{sitemap_url}]: {exception} After 3 retries, No retries left. Check URL passed!"
-                )
                 return None
+        else:
+            return None
 
-    def __random_date(self, start, end):
+    def random_date(self, start, end):
         delta = end - start
         int_delta = (delta.days * 24 * 60 * 60) + delta.seconds
         random_second = random.randrange(int_delta)
         return start + timedelta(seconds=random_second)
 
-    def __scrape_all_urls(self, sitemap_url, retries=3):
-        try:
-            response = requests.get(sitemap_url)
-            response.raise_for_status()
-            data = BeautifulSoup(response.text, "xml")
-
-            url_set = data.find_all("url")
-
+    def __scrape_all_urls(self):
+        xml = self.__send_request(self.SITEMAP_URL, parser="xml")
+        if xml is not None:
+            url_set = xml.find_all("url")
             """
             Ex: <url>
                 <loc>https://flywheeloutput.com/p/everything-you-need-to-know-about</loc>
@@ -198,7 +137,7 @@ class FlyWheel:
                 <changefreq>monthly</changefreq>
             </url>
             """
-            url_dates = [
+            urls_with_dates = [
                 [
                     datetime.fromisoformat(
                         url_set_item.find("lastmod").string
@@ -209,25 +148,14 @@ class FlyWheel:
                 if url_set_item.find("lastmod") is not None
             ]
 
-            current_date = date.today().strftime("%Y-%m-%d")
-
-            to_be_scraped_urls = [
-                each_article[1]
-                for each_article in url_dates
-                if (parse(current_date) - parse(each_article[0])).days >= 1
-            ]
-
-            return to_be_scraped_urls
-        except requests.exceptions.RequestException as exception:
-            if retries > 0:
-                time.sleep(5)
-                self.__send_request(sitemap_url, retries - 1)
+            to_be_scraped_urls = [each_article[1] for each_article in urls_with_dates]
+            if to_be_scraped_urls is not None:
+                self.__log_to_discord(to_be_scraped_urls, color=16776960)
+                return list(set(to_be_scraped_urls))
             else:
-                self.__log_to_discord(f"No URLs found at sitemap {sitemap_url}")
-                self.__log_to_discord(
-                    f"problem with scraping [{sitemap_url}]: {exception} After 3 retries, No retries left. Check URL passed!"
-                )
                 return None
+        else:
+            return None
 
     def __send_request(self, url, retries=3, parser="html.parser"):
         try:
@@ -245,7 +173,7 @@ class FlyWheel:
                     f"Problem with scraping [{url}]: {exception} After 3 retries, No retries left. Check URL passed!"
                 )"""
                 self.__log_to_discord(
-                    f"problem with scraping [{url}]: {exception} After 3 retries, No retries left. Check URL passed!"
+                    f"❌ problem with scraping [{url}]: {exception} After 3 retries, No retries left. Check URL passed! ❌"
                 )
                 return None
 
@@ -253,7 +181,7 @@ class FlyWheel:
         payload = self.__create_payload(message, color)
         try:
             response = requests.post(
-                self.webhook_url,
+                self.__BRAIN_DAO_ALARMS_WHOOK_URL,
                 data=json.dumps(payload),
                 headers={"Content-Type": "application/json"},
             )
@@ -266,24 +194,24 @@ class FlyWheel:
             else:
                 """self.logger.setLevel(logging.WARNING)
                 self.logger.warning(
-                    f"Error Logging to discord: {exception} After 3 retries, No retries left. Check/Debug URL passed!"
+                    f"❌ Error Logging to discord: {exception} After 3 retries, No retries left. Check/Debug URL passed! ❌"
                 )"""
                 # logs to local file after 3 failed calls
                 self.logger.error(
-                    f"Error Logging to discord: {exception} After 3 retries, No retries left. Check/Debug URL passed!"
+                    f"❌ Error Logging to discord: {exception} After 3 retries, No retries left. Check/Debug URL passed! ❌"
                 )
                 return None
 
     def __create_payload(self, message, color=16711680):
         if isinstance(message, list):
-            message = "following urls are scraped for updation:\n" + "\n\n".join(
+            message = "Following 🔗s are scraped from Flywheel:\n\n" + "\n\n".join(
                 message
             )
             return {
                 "content": "",
                 "embeds": [
                     {
-                        "title": "[Flywheel scraper]",
+                        "title": "Flywheel scraper",
                         "description": message,
                         "color": color,
                     }
@@ -294,32 +222,53 @@ class FlyWheel:
                 "content": "",
                 "embeds": [
                     {
-                        "title": "[Flywheel scraper]",
+                        "title": "Flywheel scraper",
                         "description": message,
                         "color": color,
                     }
                 ],
             }
 
-    def scrape(self):
+    def scrape(self, cut_off_date):
         try:
-            self.__log_to_discord("initiating flywheel scraper", color=65280)
-            updated_urls = self.__scrape_updated_urls(self.sitemap_url)
-            if updated_urls is not None:
+            self.__log_to_discord("🏁 Initiating Flywheel Scraper 🔧", color=65280)
+            # better send cuttof date as string from db
+            # i guess it's done like this since we dk how each scraper is expecting it's date format to be in
+            updated_urls = self.__scrape_updated_urls(cut_off_date)
+            if updated_urls is None:
+                self.__log_to_discord(
+                    "🚫 No pages in FLywheel substack are found to have updates! 🚫"
+                )
+                return None
+            else:
                 df = self.__scrape_content(updated_urls)
                 if df is not None:
                     self.__log_to_discord(
-                        f"scraping successful... {df.shape[0]} urls are updated!",
+                        f" Total pages scraped = {df.shape[0]} 🚀",
                         color=65280,
                     )
                     return df
                 else:
                     self.__log_to_discord(
-                        "No updates found at Flywheel", color=16753920
+                        "The pages updated into Flywheel after last cron doesnt have content!🙄",
+                        color=16753920,
                     )
+                    return None
+
+        except Exception as e:
+            self.__log_to_discord(f"❌ Error during Flywheel Scraper ❌\n{e}")
+            print(f"❌ Error during Flywheel Scraper ❌\n{e}")
+
         finally:
-            self.__log_to_discord("finished scraping Flywheel!!", color=65280)
+            self.__log_to_discord(
+                "Scraping Successful ✅\n\nExit Flywheel Scraping 🏁", color=65280
+            )
 
 
 obj = FlyWheel()
-print(obj.scrape())
+start_date = datetime(2023, 4, 1, tzinfo=timezone.utc)
+end_date = datetime(2023, 5, 1, tzinfo=timezone.utc)
+
+random_dt = obj.random_date(start_date, end_date)
+random_dt_str = random_dt.strftime("%Y-%m-%d")
+print(obj.scrape(random_dt))
