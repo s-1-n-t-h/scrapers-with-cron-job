@@ -21,8 +21,8 @@ class FlyWheel:
     __BRAIN_DAO_ALARMS_WHOOK_URL = os.getenv("WEBHOOK_URL")
 
     def __init__(self):
-        self.URL = "https://flywheeloutput.com/"
-        self.SITEMAP_URL = "https://flywheeloutput.com/sitemap.xml"
+        self.URL = "https://flywheeldefi.com/"
+        self.SITEMAP_URL = "https://flywheeldefi.com/sitemap.xml"
 
     """probably this part of code is not necessary since we know sitemap url, if it's chaging in dynamic sense
         may be then for finding where will he helpful
